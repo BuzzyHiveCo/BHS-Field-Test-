@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#21170f">
+<title>Buzzy Hive 0.6 Shared Operations</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}:root{--bg:#f7f0df;--ink:#261b12;--brown:#21170f;--gold:#d89a00;--line:#dfcfad;--muted:#75634b}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}button,input{font:inherit}button{cursor:pointer}
+header{background:var(--brown);color:white;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}header b{font-family:Georgia,serif;font-size:21px}header small{display:block;color:#d8c8ae}
+main{max-width:980px;margin:auto;padding:16px 16px 80px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.hero{background:linear-gradient(135deg,#21170f,#432f20);color:white;border-radius:20px;padding:22px;margin-bottom:14px}.hero h1,h2,h3{font-family:Georgia,serif}.hero h1{margin:5px 0}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:#efc75c}.muted,small{color:var(--muted)}
+.primary{background:var(--gold);border:0;border-radius:11px;padding:12px 15px;font-weight:900}.secondary{background:white;border:1px solid #cdbb9a;border-radius:10px;padding:10px 12px}
+label{display:grid;gap:5px;font-size:12px;font-weight:800}input{width:100%;padding:11px;border:1px solid #cdbb9a;border-radius:10px;background:white}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.stat{background:white;border:1px solid var(--line);border-radius:13px;padding:13px}.stat b{display:block;font-size:24px}
+.tabs{display:flex;gap:7px;overflow:auto;margin-bottom:12px}.tabs button{white-space:nowrap;border:1px solid #cdbb9a;border-radius:999px;padding:9px 12px;background:white}.tabs button.active{background:#21170f;color:white}
+.hive{width:100%;text-align:left;border:2px solid var(--line);border-radius:13px;padding:13px;margin:6px 0;background:white}.green{background:#dff1df;border-color:#4f915c}.yellow{background:#fff2bf;border-color:#d09a16}.red{background:#f9d5d1;border-color:#c44438}
+.dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}.history{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;background:#fffaf0}.history summary{cursor:pointer;font-weight:900}
+.login{max-width:520px;margin:40px auto}.notice{background:#fff7dc;border:1px solid #d89a00;border-radius:12px;padding:12px;margin:10px 0}.success{background:#e1f2e4;border-color:#4f915c}.error{background:#f9d5d1;border-color:#c44438}
+@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<header><div><b>Buzzy Hive</b><small>0.6.2 Shared Operations · Verified Migration</small></div><button id="signOutBtn" class="secondary" style="display:none" onclick="signOut()">Sign out</button></header>
+<main id="app"></main>
+<script>
+const sb=window.supabase.createClient("https://cjpphjcgbzssyjavkrfv.supabase.co","sb_publishable_re4AoHFdZ5SmCdU2tJxWrA_SnrY0kAw");
+let user=null,profile=null,apiaries=[],colonies=[],inspections=[],view='dashboard',selectedColony=null;
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function fmt(dt){return dt?new Date(dt).toLocaleString():'—'}
+function colorFor(s){return s==='Needs Attention'?'red':s==='Monitor'?'yellow':'green'}
+function dotFor(s){const c=s==='Needs Attention'?'#c44438':s==='Monitor'?'#d09a16':'#4f915c';return `<span class="dot" style="background:${c}"></span>`}
+async function init(){const {data:{session}}=await sb.auth.getSession();if(session){user=session.user;await loadCloud();render()}else renderLogin();sb.auth.onAuthStateChange(async(_e,s)=>{user=s?.user||null;if(user){await loadCloud();render()}else renderLogin()})}
+function renderLogin(msg=''){document.querySelector('#signOutBtn').style.display='none';app.innerHTML=`<div class="login"><div class="hero"><div class="eyebrow">BHS 0.6 cloud test</div><h1>Shared Operations</h1><p><b>CLOUD DATABASE TEST</b> — phone and desktop use the same Supabase database.</p></div>${msg?`<div class="notice">${esc(msg)}</div>`:''}<div class="card"><h3>Sign in</h3><label>Email<input id="email" type="email" value="rcsisco86@gmail.com"></label><label>Password<input id="password" type="password" minlength="8"></label><div style="display:flex;gap:8px;margin-top:12px"><button class="primary" onclick="login()">Sign in</button><button class="secondary" onclick="signup()">Create owner account</button></div><small>Your password goes directly to Supabase Auth.</small></div></div>`}
+async function login(){const email=document.querySelector('#email').value.trim(),password=document.querySelector('#password').value;const {error}=await sb.auth.signInWithPassword({email,password});if(error)renderLogin(error.message)}
+async function signup(){const email=document.querySelector('#email').value.trim(),password=document.querySelector('#password').value;if(password.length<8){renderLogin('Use a password of at least 8 characters.');return}const {data,error}=await sb.auth.signUp({email,password,options:{data:{display_name:'Chris'}}});if(error){renderLogin(error.message);return}if(!data.session)renderLogin('Account created. Check your email for a confirmation message, confirm it, then come back and sign in.')}
+async function signOut(){await sb.auth.signOut();renderLogin('Signed out.')}
+async function loadCloud(){const [p,a,c,i]=await Promise.all([sb.from('profiles').select('*').eq('id',user.id).maybeSingle(),sb.from('apiaries').select('*').order('name'),sb.from('colonies').select('*').eq('is_active',true).order('colony_code'),sb.from('inspections').select('*,profiles:inspected_by(display_name)').order('inspected_at',{ascending:false})]);const err=[p,a,c,i].find(x=>x.error)?.error;if(err)throw err;profile=p.data;apiaries=a.data||[];colonies=c.data||[];inspections=i.data||[];document.querySelector('#signOutBtn').style.display='inline-block'}
+function tabs(){const items=[['dashboard','Command Center'],['colonies','Colonies'],['import','Import 0.5.5 Backup']];return `<div class="tabs">${items.map(([id,l])=>`<button class="${view===id?'active':''}" onclick="view='${id}';selectedColony=null;render()">${l}</button>`).join('')}<button onclick="syncNow()">↻ Sync Now</button></div>`}
+async function syncNow(){await loadCloud();render();alert('Cloud data refreshed.')}
+function render(){if(!user){renderLogin();return}app.innerHTML=tabs()+(view==='dashboard'?dashboard():view==='colonies'?coloniesView():importView());if(view==='import')setTimeout(()=>verifyCloud(false).catch(()=>{}),0)}
+function dashboard(){const h=colonies.filter(c=>c.current_status==='Healthy').length,y=colonies.filter(c=>c.current_status==='Monitor').length,r=colonies.filter(c=>c.current_status==='Needs Attention').length;return `<div class="hero"><div class="eyebrow">${esc(profile?.role||'user')} · CLOUD DATABASE CONNECTED</div><h1>Cloud Command Center</h1><p>${esc(profile?.display_name||user.email)} · ${esc(user.email)}</p></div><div class="stats"><div class="stat"><b>${colonies.length}</b><small>Colonies</small></div><div class="stat"><b>${h}</b><small>Healthy</small></div><div class="stat"><b>${y}</b><small>Monitor</small></div><div class="stat"><b>${r}</b><small>Needs Attention</small></div></div><div class="card"><h3>Home Yard</h3>${colonies.length?colonies.map(hiveButton).join(''):'<p class="muted">No cloud colonies yet. Import your 0.5.5 backup.</p>'}</div>`}
+function hiveButton(c){return `<button class="hive ${colorFor(c.current_status)}" onclick="selectedColony='${c.id}';view='colonies';render()"><b>${dotFor(c.current_status)}${esc(c.colony_code)}</b><small>${esc(c.current_status)} · Last full inspection ${fmt(c.last_full_inspection_at)}</small></button>`}
+function coloniesView(){if(selectedColony)return colonyDetail(selectedColony);return `<div class="hero"><div class="eyebrow">Permanent records</div><h1>Colonies</h1><p>Open a hive to retrieve every saved inspection and its notes.</p></div><div class="card">${colonies.map(hiveButton).join('')||'<p class="muted">No colonies loaded.</p>'}</div>`}
+function colonyDetail(id){const c=colonies.find(x=>x.id===id),hist=inspections.filter(i=>i.colony_id===id);return `<button class="secondary" onclick="selectedColony=null;render()">← All Colonies</button><div class="hero"><div class="eyebrow">Cloud colony record</div><h1>${esc(c.colony_code)}</h1><p>${dotFor(c.current_status)}${esc(c.current_status)} · ${esc(c.status_reason||'No status reason recorded')}</p></div><div class="card"><h3>Inspection History</h3>${hist.length?hist.map(inspectionCard).join(''):'<p class="muted">No cloud inspections yet.</p>'}</div>`}
+function inspectionCard(i){const who=i.profiles?.display_name||'Historical import';return `<details class="history"><summary>${fmt(i.inspected_at)} · ${i.inspection_type==='quick_check'?'Quick Hive Check':'Routine Inspection'} · ${esc(who)}</summary><p><b>Status after:</b> ${esc(i.status_after||'—')}</p><p><b>Queen signs:</b> ${esc((i.queen_signs||[]).join(', ')||'—')}</p><p><b>Population:</b> ${esc(i.population||'—')} · <b>Stores:</b> ${esc(i.food_stores||'—')} · <b>Brood:</b> ${esc(i.brood_pattern||'—')}</p><p><b>Pests:</b> ${esc((i.pests||[]).join(', ')||'None recorded')}</p><p><b>Notes:</b><br>${esc(i.notes||'No notes recorded.').replaceAll('\\n','<br>')}</p></details>`}
+
+function importView(){return `<div class="hero"><div class="eyebrow">Schema-verified migration</div><h1>Move Your Working BHS Data Into the Cloud</h1><p>This version is built for the backup format your working app actually exports.</p></div>
+<div class="card">
+  <h3>1. Choose your fresh BHS backup</h3>
+  <input id="backupFile" type="file" accept=".json,application/json">
+  <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+    <button class="secondary" onclick="readBackupPreview()">READ BACKUP</button>
+    <button id="importBtn" class="primary" onclick="importBackup()" disabled>IMPORT & VERIFY</button>
+  </div>
+  <div id="backupPreview" class="muted" style="margin-top:12px">No backup read yet.</div>
+</div>
+<div class="card">
+  <h3>2. Cloud database verification</h3>
+  <button class="secondary" onclick="verifyCloud(true)">CHECK CLOUD COUNTS</button>
+  <div id="cloudCounts" style="margin-top:10px"></div>
+</div>
+<div class="card">
+  <h3>Expected result from your current backup</h3>
+  <p><b>8 colonies</b> · <b>9 inspections</b> · <b>28 tasks</b> · <b>0 separate operations</b></p>
+  <small>The importer will not report success unless Supabase reads back the same counts after import.</small>
+</div>`}
+
+let pendingBackup=null;
+function first(...vals){for(const v of vals)if(v!==undefined&&v!==null&&v!=='')return v;return null}
+function arr(v){
+ if(Array.isArray(v))return v;
+ if(!v)return [];
+ return String(v).split(',').map(x=>x.trim()).filter(Boolean);
+}
+function ts(v){
+ if(!v)return new Date().toISOString();
+ return String(v).includes('T')?new Date(v).toISOString():new Date(v+'T12:00:00').toISOString();
+}
+function classifyStatus(ins){
+ const unusual=String(ins.unusual||'').toLowerCase();
+ const overall=String(ins.overall||'').toLowerCase();
+ const q=arr(ins.queenEvidence).map(x=>x.toLowerCase());
+ if(unusual.includes('needs attention')) return 'Monitor';
+ if(overall==='weak') return 'Monitor';
+ if(q.some(x=>x.includes('no clear evidence')||x.includes('unsure'))) return 'Monitor';
+ return 'Healthy';
+}
+function normalizeBackup(raw){
+ const s=raw?.state;
+ if(!s || !Array.isArray(s.colonies) || !Array.isArray(s.inspections) || !Array.isArray(s.tasks)){
+   throw new Error('This file is not the expected BHS backup format.');
+ }
+ return s;
+}
+async function readBackupPreview(){
+ const file=document.querySelector('#backupFile').files?.[0];
+ const box=document.querySelector('#backupPreview');
+ const btn=document.querySelector('#importBtn');
+ pendingBackup=null; btn.disabled=true;
+ if(!file){box.innerHTML='<span style="color:#9a2b23">Choose the backup file first.</span>';return}
+ try{
+   const raw=JSON.parse(await file.text());
+   const s=normalizeBackup(raw);
+   const active=s.colonies.filter(c=>c.status!=='Archived');
+   pendingBackup=s;
+   box.innerHTML=`<div class="notice success">
+      <b>Backup read successfully.</b><br>
+      ${active.length} active colonies · ${s.inspections.length} inspections · ${s.tasks.length} tasks · ${(s.operations||[]).length} separate operations.<br>
+      <small>Backup app version: ${esc(raw.version||'unknown')}</small>
+   </div>`;
+   btn.disabled=false;
+ }catch(e){
+   box.innerHTML=`<div class="notice error"><b>Could not read backup.</b><br>${esc(e.message)}</div>`;
+ }
+}
+async function verifyCloud(showAlert=false){
+ const [c,i,o,t]=await Promise.all([
+  sb.from('colonies').select('id',{count:'exact',head:true}),
+  sb.from('inspections').select('id',{count:'exact',head:true}),
+  sb.from('operations').select('id',{count:'exact',head:true}),
+  sb.from('tasks').select('id',{count:'exact',head:true})
+ ]);
+ const err=[c,i,o,t].find(x=>x.error)?.error;if(err)throw err;
+ const counts={colonies:c.count||0,inspections:i.count||0,operations:o.count||0,tasks:t.count||0};
+ const el=document.querySelector('#cloudCounts');
+ if(el)el.innerHTML=`<b>${counts.colonies}</b> colonies · <b>${counts.inspections}</b> inspections · <b>${counts.tasks}</b> tasks · <b>${counts.operations}</b> operations`;
+ if(showAlert)alert(`Cloud database: ${counts.colonies} colonies, ${counts.inspections} inspections, ${counts.tasks} tasks, ${counts.operations} operations.`);
+ return counts;
+}
+async function clearExistingCloud(){
+ // Only clear tables participating in this test migration, in FK-safe order.
+ let r=await sb.from('activity_events').delete().neq('id','00000000-0000-0000-0000-000000000000'); if(r.error)throw r.error;
+ r=await sb.from('operations').delete().neq('id','00000000-0000-0000-0000-000000000000'); if(r.error)throw r.error;
+ r=await sb.from('tasks').delete().neq('id','00000000-0000-0000-0000-000000000000'); if(r.error)throw r.error;
+ r=await sb.from('inspections').delete().neq('id','00000000-0000-0000-0000-000000000000'); if(r.error)throw r.error;
+ r=await sb.from('colonies').delete().neq('id','00000000-0000-0000-0000-000000000000'); if(r.error)throw r.error;
+}
+async function importBackup(){
+ if(!pendingBackup){alert('Click READ BACKUP first.');return}
+ const s=pendingBackup;
+ const active=s.colonies.filter(c=>c.status!=='Archived');
+ const st=document.querySelector('#importStatus')||document.querySelector('#backupPreview');
+ const btn=document.querySelector('#importBtn');
+ if(active.length!==8 || s.inspections.length!==9 || s.tasks.length!==28){
+   const ok=confirm(`This backup contains ${active.length} active colonies, ${s.inspections.length} inspections, and ${s.tasks.length} tasks. Expected 8 / 9 / 28. Continue anyway?`);
+   if(!ok)return;
+ }
+ btn.disabled=true;
+ st.innerHTML='<div class="notice">Importing to Supabase and verifying… do not close this page.</div>';
+ try{
+   const home=apiaries.find(a=>a.name==='Home Yard')||apiaries[0];
+   if(!home)throw new Error('Home Yard apiary is missing from Supabase.');
+
+   // This is a controlled migration test. Start clean so counts are deterministic.
+   await clearExistingCloud();
+
+   const map={};
+
+   // 1) Colonies from actual backup schema.
+   for(const c of active){
+     const payload={
+       colony_code:c.id,
+       apiary_id:home.id,
+       hive_number:c.hiveNumber||null,
+       queen_id:c.queen||null,
+       colony_type:c.type||'Production',
+       current_status:['Healthy','Monitor','Needs Attention'].includes(c.status)?c.status:'Healthy',
+       status_reason:null,
+       population:c.population||null,
+       food_stores:c.stores||null,
+       brood_pattern:c.brood||null,
+       queen_evidence:arr(c.queenEvidence),
+       small_hive_beetle_status:c.shb||null,
+       last_full_inspection_at:c.lastInspection?ts(c.lastInspection):null,
+       is_active:true
+     };
+     const {data,error}=await sb.from('colonies').insert(payload).select('id,colony_code').single();
+     if(error)throw new Error(`Colony ${c.id}: ${error.message}`);
+     map[c.id]=data.id;
+   }
+
+   // 2) Inspections from actual backup schema.
+   for(const i of s.inspections){
+     const cid=map[i.colony];
+     if(!cid)throw new Error(`Inspection ${i.id} references unknown colony ${i.colony}.`);
+     const statusAfter=classifyStatus(i);
+     const payload={
+       legacy_id:i.id,
+       colony_id:cid,
+       inspection_type:'routine',
+       inspected_by:user.id,
+       inspected_at:ts(i.date),
+       queen_signs:arr(i.queenEvidence),
+       population:i.overall||null,
+       food_stores:null,
+       brood_pattern:null,
+       pests:[],
+       syrup_added:i.intervention==='Feed'?(i.interventionDetail||'Feed'):null,
+       pollen_added:null,
+       treatment:null,
+       treatment_notes:null,
+       intervention:i.intervention||null,
+       notes:i.notes||null,
+       status_after:statusAfter,
+       status_reason:i.unusual||null,
+       needs_followup:!!(i.followupDays || String(i.unusual||'').toLowerCase().includes('needs attention'))
+     };
+     const {error}=await sb.from('inspections').insert(payload);
+     if(error)throw new Error(`Inspection ${i.id}: ${error.message}`);
+   }
+
+   // 3) Tasks from actual backup schema.
+   for(const t of s.tasks){
+     const payload={
+       legacy_id:t.id,
+       title:t.title,
+       colony_id:map[t.colony]||null,
+       apiary_id:home.id,
+       due_date:t.due||null,
+       priority:['low','normal','high','critical'].includes(t.priority)?t.priority:'normal',
+       reason:t.reason||null,
+       is_done:!!t.done,
+       completed_by:t.done?user.id:null,
+       completed_at:t.done?new Date().toISOString():null,
+       created_by:user.id
+     };
+     const {error}=await sb.from('tasks').insert(payload);
+     if(error)throw new Error(`Task ${t.id}: ${error.message}`);
+   }
+
+   // 4) Recalculate colony snapshots from latest inspection per hive.
+   for(const c of active){
+     const hist=s.inspections.filter(i=>i.colony===c.id);
+     if(!hist.length)continue;
+     const last=hist[hist.length-1];
+     const upd={
+       current_status:classifyStatus(last),
+       status_reason:last.unusual||null,
+       population:last.overall||c.population||null,
+       queen_evidence:arr(last.queenEvidence),
+       last_full_inspection_at:ts(last.date)
+     };
+     const {error}=await sb.from('colonies').update(upd).eq('id',map[c.id]);
+     if(error)throw new Error(`Snapshot ${c.id}: ${error.message}`);
+   }
+
+   // 5) Read it all back from Supabase.
+   const counts=await verifyCloud(false);
+   const expected={colonies:active.length,inspections:s.inspections.length,tasks:s.tasks.length,operations:(s.operations||[]).length};
+   if(counts.colonies!==expected.colonies || counts.inspections!==expected.inspections || counts.tasks!==expected.tasks || counts.operations!==expected.operations){
+     throw new Error(`Verification mismatch. Expected ${expected.colonies}/${expected.inspections}/${expected.tasks}/${expected.operations} but Supabase returned ${counts.colonies}/${counts.inspections}/${counts.tasks}/${counts.operations}.`);
+   }
+
+   // 6) Verify specific note-bearing inspections survived.
+   const {data:noteRows,error:noteErr}=await sb.from('inspections').select('legacy_id,notes').in('legacy_id',['INSP-UT9D3GK','INSP-1JJT17P','INSP-Q8VWD3S']);
+   if(noteErr)throw noteErr;
+   if((noteRows||[]).filter(r=>r.notes).length!==3)throw new Error('Verification failed: not all three note-bearing inspections were stored.');
+
+   await loadCloud();
+   st.innerHTML=`<div class="notice success"><b>VERIFIED IN SUPABASE.</b><br>
+   ${counts.colonies} colonies · ${counts.inspections} inspections · ${counts.tasks} tasks · ${counts.operations} operations are physically stored in the cloud.<br>
+   <small>The three inspections with written notes were also verified.</small></div>`;
+   render();
+ }catch(e){
+   st.innerHTML=`<div class="notice error"><b>IMPORT NOT VERIFIED.</b><br>${esc(e.message)}</div>`;
+   btn.disabled=false;
+ }
+}
+
+init();
+</script>
+</body>
+</html>

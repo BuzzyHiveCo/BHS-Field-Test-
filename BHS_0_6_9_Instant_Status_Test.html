@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0a08">
+<title>Buzzy Hive 0.6.9 Instant Status Test</title>
+<style>
+*{box-sizing:border-box}:root{--bg:#fbf4e3;--ink:#1d160f;--brown:#0b0a08;--gold:#f29a13;--line:#e4c98e;--muted:#75634b;--green:#397044;--red:#9a2b23}
+body{margin:0;font-family:Inter,system-ui,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+header{position:sticky;top:0;z-index:30;background:linear-gradient(90deg,#080706,#20150d);color:white;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--gold)}
+header b{font-family:Georgia,serif;font-size:20px;letter-spacing:.02em}header small{display:block;color:#ead8b5}.brandlock{display:flex;align-items:center;gap:10px;min-width:0}.brandlogo{width:50px;height:50px;object-fit:contain;flex:0 0 auto}.brandtext{min-width:0}.brandtext small{white-space:nowrap}.loginlogo{display:block;width:min(280px,72vw);height:auto;margin:0 auto 16px;filter:drop-shadow(0 8px 18px #0004)}
+nav{display:flex;gap:6px;overflow:auto;background:#17110c;padding:8px;position:sticky;top:60px;z-index:29}
+nav button{border:1px solid #5f4226;border-radius:999px;background:#2b1d12;color:white;padding:9px 12px;white-space:nowrap}nav button.active{background:var(--gold);color:#21170f;font-weight:900}
+main{max-width:980px;margin:auto;padding:16px 16px 90px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 8px 20px #5a430d14}
+.hero{background:linear-gradient(135deg,#0b0a08,#4a2812);color:white;border-radius:20px;padding:22px;margin-bottom:14px}
+.hero h1{font-family:Georgia,serif;margin:4px 0 8px}.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:900;color:#a67200}
+.hero .eyebrow{color:#efc75c}.primary{background:var(--gold);border:0;border-radius:12px;padding:13px 16px;font-weight:900;color:#21170f}
+.secondary{background:white;border:1px solid #cdbb9a;border-radius:10px;padding:10px 12px}.danger{color:white;background:var(--red);border:0;border-radius:10px;padding:10px 12px}
+.start{width:100%;font-size:22px;padding:20px;margin:8px 0 16px;display:flex;justify-content:space-between;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px}.stat{background:white;border:1px solid var(--line);border-radius:14px;padding:13px}.stat strong{display:block;font-size:25px;color:#8a5f00}.stat span{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:800}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.yard{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.hive{border:2px solid var(--line);border-radius:13px;background:#fffaf0;padding:13px;text-align:left}.hive.Healthy{border-color:#6aa775}.hive.Monitor{border-color:#d0a02f}
+h2,h3{font-family:Georgia,serif}h3{margin:0 0 10px}small,.muted{color:var(--muted)}
+.progress{position:sticky;top:106px;z-index:20;background:var(--brown);color:white;border-radius:0 0 14px 14px;padding:10px 14px;margin:-16px -16px 12px;display:grid;grid-template-columns:1fr auto;gap:6px}.progress progress{grid-column:1/-1;width:100%}
+.tapgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.tap{min-height:52px;border:1px solid #d3c09b;background:#fffaf0;border-radius:12px;padding:10px;font-weight:800}.tap.selected{background:#f1cb61;border-color:#9c6c00;box-shadow:0 0 0 2px #d89a0026}
+.field2{display:grid;grid-template-columns:1fr 1fr;gap:10px}label{display:grid;gap:5px;font-size:12px;font-weight:800}select,input,textarea{width:100%;padding:11px;border:1px solid #cdbb9a;border-radius:10px;background:white}textarea{min-height:110px}
+.noteshead{display:flex;justify-content:space-between;align-items:center}.talk{background:#21170f;color:white;border:0;border-radius:999px;padding:11px 16px;font-weight:900}.talk.live{background:#9a2b23}
+.savebar{position:sticky;bottom:0;background:#f7f0dff5;backdrop-filter:blur(6px);display:grid;grid-template-columns:1fr 2fr;gap:8px;padding:10px 0}.savebar button{padding:15px;font-weight:900;border-radius:12px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{min-height:145px;background:white;border:1px solid var(--line);border-radius:11px;padding:9px;text-align:left}.day.selected{border:2px solid var(--gold)}.day strong,.day span{display:block}.day span{font-size:11px;color:var(--muted)}.day small{display:block;background:#f6ecd7;border-radius:6px;padding:4px;margin-top:5px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #eee1c9;padding:10px 0}.row:last-child{border:0}
+.hidden{display:none!important}.summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.summary div{background:#fffaf0;border-radius:12px;padding:14px}.summary b{display:block;font-size:25px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}.tapgrid{grid-template-columns:repeat(2,1fr)}.field2{grid-template-columns:1fr}.week{grid-template-columns:repeat(2,1fr)}.stats,.summary{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:430px){.tapgrid{grid-template-columns:1fr}.savebar{grid-template-columns:1fr}}
+
+.health-green{background:#dff1df!important;border-color:#4f915c!important;color:#1f592a!important}
+.health-yellow{background:#fff2bf!important;border-color:#d09a16!important;color:#705000!important}
+.health-red{background:#f9d5d1!important;border-color:#c44438!important;color:#7d211b!important}
+.health-dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+.health-banner{border-radius:14px;padding:12px 14px;margin:10px 0 14px;font-weight:800}
+.health-reason{font-size:12px;margin-top:5px;font-weight:600}
+
+.voice-review{background:#fff7dc;border:1px solid #d89a00;border-radius:14px;padding:13px;margin-top:10px}
+.voice-review h4{margin:0 0 8px;font-family:Georgia,serif}
+.voice-review textarea{min-height:88px}
+.voice-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.voice-actions button{padding:11px;border-radius:10px;border:1px solid #cdbb9a;font-weight:900}
+.voice-state{font-size:12px;color:#6f5c43;margin-top:6px}
+.voice-badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900;background:#f6ecd7;color:#5b4629}
+@media(max-width:520px){.voice-actions{grid-template-columns:1fr}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="apple-touch-icon" sizes="180x180" href="buzzy-hive-logo-final-web.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="buzzy-hive-logo-final-web.png">
+  <meta name="apple-mobile-web-app-title" content="Buzzy Hive">
+</head>
+<body>
+<header><div class="brandlock"><img class="brandlogo" src="buzzy-hive-logo-final-web.png" alt="Buzzy Hive Co. logo"><div class="brandtext"><b>Buzzy Hive Operating System</b><small>0.6.9 · Instant Status Test <span id="cloudBadge">· connecting…</span></small></div></div><div style="display:flex;gap:6px"><button class="secondary" onclick="syncFromCloud()">↻ Sync</button><button class="secondary" onclick="signOutCloud()">Sign out</button></div></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+const SUPABASE_URL='https://cjpphjcgbzssyjavkrfv.supabase.co';
+const SUPABASE_KEY='sb_publishable_re4AoHFdZ5SmCdU2tJxWrA_SnrY0kAw';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let cloudUser=null,cloudProfile=null,cloudApiary=null,cloudIds={};
+const BASELINE={"colonies":[{"id":"H-001","apiary":"Home Yard","hiveNumber":"001","status":"Healthy","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Average","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Eggs observed, Young larvae observed, Capped brood observed, Queen observed"},{"id":"H-002","apiary":"Home Yard","hiveNumber":"002","status":"Monitor","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Weak","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Young larvae observed, Capped brood observed"},{"id":"H-003","apiary":"Home Yard","hiveNumber":"003","status":"Monitor","type":"Production","queen":"Q-2026-08","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Weak","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"No clear evidence"},{"id":"H-004","apiary":"Home Yard","hiveNumber":"004","status":"Healthy","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Strong","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Eggs observed, Young larvae observed, Capped brood observed, Queen observed"},{"id":"H-005","apiary":"Home Yard","hiveNumber":"005","status":"Healthy","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Strong","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Eggs observed, Young larvae observed, Capped brood observed, Queen observed"},{"id":"H-006","apiary":"Home Yard","hiveNumber":"006","status":"Monitor","type":"Production","queen":"Q-2026-08","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Weak","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"No clear evidence, Unsure"},{"id":"H-007","apiary":"Home Yard","hiveNumber":"007","status":"Healthy","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Average","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Eggs observed, Young larvae observed, Capped brood observed, Queen observed"},{"id":"H-008","apiary":"Home Yard","hiveNumber":"008","status":"Healthy","type":"Production","queen":"Q-2026-04","installed":"2026-04-01","feeder":"Internal","isDemo":false,"population":"Strong","brood":"Not evaluated","stores":"Unknown","temperament":"Not evaluated","shb":"Unknown","mites":"Not tested","lastInspection":"2026-08-06","supers":0,"queenEvidence":"Eggs observed, Young larvae observed, Capped brood observed"}],"tasks":[{"id":"T-HUEYAY4","title":"Initial inspection","colony":"H-001","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-RKVY7ST","title":"Initial inspection","colony":"H-002","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-U61Y6SO","title":"Initial inspection","colony":"H-003","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-KXXG8L5","title":"Initial inspection","colony":"H-004","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-KPFTY27","title":"Initial inspection","colony":"H-005","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-YZKHKGZ","title":"Initial inspection","colony":"H-006","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-TH34AY1","title":"Initial inspection","colony":"H-007","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-4DZ8W08","title":"Initial inspection","colony":"H-008","apiary":"Home Yard","priority":"normal","due":"2026-08-06","done":true,"reason":"Created from colony workflow"},{"id":"T-IHMZUE0","title":"Feeder follow-up","colony":"H-001","apiary":"Home Yard","priority":"normal","due":"2026-08-14","done":false,"reason":"Created from colony workflow"},{"id":"T-K4QRB9H","title":"Routine inspection","colony":"H-001","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":true,"reason":"Automatic 14-day inspection schedule"},{"id":"T-62QXR40","title":"Review unusual observation","colony":"H-002","apiary":"Home Yard","priority":"high","due":"2026-08-13","done":false,"reason":"Created from colony workflow"},{"id":"T-LXOJLGW","title":"Routine inspection","colony":"H-002","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-IMTO33X","title":"Feeder follow-up","colony":"H-001","apiary":"Home Yard","priority":"normal","due":"2026-08-11","done":false,"reason":"Created from colony workflow"},{"id":"T-6HAC3LH","title":"Routine inspection","colony":"H-001","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-CNR64BF","title":"Queen follow-up","colony":"H-003","apiary":"Home Yard","priority":"normal","due":"2026-08-13","done":false,"reason":"Created from colony workflow"},{"id":"T-URYR6ZB","title":"Review unusual observation","colony":"H-003","apiary":"Home Yard","priority":"high","due":"2026-08-13","done":false,"reason":"Created from colony workflow"},{"id":"T-MZYFJ6M","title":"Routine inspection","colony":"H-003","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-YN4HAPW","title":"Feeder follow-up","colony":"H-004","apiary":"Home Yard","priority":"normal","due":"2026-08-11","done":false,"reason":"Created from colony workflow"},{"id":"T-91T5554","title":"Routine inspection","colony":"H-004","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-679NJWZ","title":"Feeder follow-up","colony":"H-005","apiary":"Home Yard","priority":"normal","due":"2026-08-11","done":false,"reason":"Created from colony workflow"},{"id":"T-XHIIZ7E","title":"Routine inspection","colony":"H-005","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-3AZXLGI","title":"Queen follow-up","colony":"H-006","apiary":"Home Yard","priority":"normal","due":"2026-08-13","done":false,"reason":"Created from colony workflow"},{"id":"T-BG71PBY","title":"Review unusual observation","colony":"H-006","apiary":"Home Yard","priority":"high","due":"2026-08-13","done":false,"reason":"Created from colony workflow"},{"id":"T-GKV0975","title":"Routine inspection","colony":"H-006","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-TU6C3Z7","title":"Feeder follow-up","colony":"H-007","apiary":"Home Yard","priority":"normal","due":"2026-08-11","done":false,"reason":"Created from colony workflow"},{"id":"T-4J6Y3DB","title":"Routine inspection","colony":"H-007","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"},{"id":"T-MY1FL76","title":"Feeder follow-up","colony":"H-008","apiary":"Home Yard","priority":"normal","due":"2026-08-11","done":false,"reason":"Created from colony workflow"},{"id":"T-EXXGEQ0","title":"Routine inspection","colony":"H-008","apiary":"Home Yard","priority":"normal","due":"2026-08-20","done":false,"reason":"Automatic 14-day inspection schedule"}],"timeline":{"H-001":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed, Queen observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gallon"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed, Queen observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gal"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-002":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Monitor \u2022 Queen evidence: Young larvae observed, Capped brood observed"},{"date":"2026-08-06","text":"Task created: Review unusual observation"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-003":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Monitor \u2022 Queen evidence: No clear evidence \u2022 Queen work"},{"date":"2026-08-06","text":"Task created: Queen follow-up"},{"date":"2026-08-06","text":"Intervention: Queen work \u2014 3/4 gal"},{"date":"2026-08-06","text":"Task created: Review unusual observation"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-004":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed, Queen observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gal"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-005":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed, Queen observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gal"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-006":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Monitor \u2022 Queen evidence: No clear evidence, Unsure \u2022 Queen work"},{"date":"2026-08-06","text":"Task created: Queen follow-up"},{"date":"2026-08-06","text":"Intervention: Queen work"},{"date":"2026-08-06","text":"Task created: Review unusual observation"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-007":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed, Queen observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gal"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}],"H-008":[{"date":"2026-08-06","text":"Colony created"},{"date":"2026-08-06","text":"Task created: Initial inspection"},{"date":"2026-08-06","text":"Quick health check \u2014 Healthy \u2022 Queen evidence: Eggs observed, Young larvae observed, Capped brood observed \u2022 Feed"},{"date":"2026-08-06","text":"Task created: Feeder follow-up"},{"date":"2026-08-06","text":"Intervention: Feed \u2014 3/4 gal"},{"date":"2026-08-06","text":"Next routine inspection scheduled for 2026-08-20"}]},"inspections":[{"id":"INSP-1J09DRR","colony":"H-001","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Average","intervention":"Feed","interventionDetail":"3/4 gallon","followupDays":"8","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed","Queen observed"]},{"id":"INSP-UT9D3GK","colony":"H-002","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Weak","intervention":"None","interventionDetail":"3/4 gal","followupDays":"","unusual":"Yes \u2014 needs attention","notes":"This colony is trying to requeen. im letting them, will check for proper mating on 08/19/26","queenEvidence":["Young larvae observed","Capped brood observed"]},{"id":"INSP-N9VA2P1","colony":"H-001","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Average","intervention":"Feed","interventionDetail":"3/4 gal","followupDays":"","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed","Queen observed"]},{"id":"INSP-1JJT17P","colony":"H-003","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Weak","intervention":"Queen work","interventionDetail":"3/4 gal","followupDays":"","unusual":"Yes \u2014 needs attention","notes":"Dead queen. introduced mated queen 8/4/26","queenEvidence":["No clear evidence"]},{"id":"INSP-16N5HW7","colony":"H-004","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Strong","intervention":"Feed","interventionDetail":"3/4 gal","followupDays":"","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed","Queen observed"]},{"id":"INSP-32S7GSQ","colony":"H-005","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Strong","intervention":"Feed","interventionDetail":"3/4 gal","followupDays":"","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed","Queen observed"]},{"id":"INSP-Q8VWD3S","colony":"H-006","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Weak","intervention":"Queen work","interventionDetail":"","followupDays":"","unusual":"Yes \u2014 needs attention","notes":"Another dead queen. installed mated queen 8/4/26","queenEvidence":["No clear evidence","Unsure"]},{"id":"INSP-BIC05WA","colony":"H-007","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Average","intervention":"Feed","interventionDetail":"3/4 gal","followupDays":"","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed","Queen observed"]},{"id":"INSP-IG08MOH","colony":"H-008","date":"2026-08-06","type":"Routine Health Check","mode":"routine","overall":"Strong","intervention":"Feed","interventionDetail":"3/4 gal","followupDays":"","unusual":"No \u2014 normal colony","notes":"","queenEvidence":["Eggs observed","Young larvae observed","Capped brood observed"]}],"calendarEvents":[],"inventory":[{"id":"INV-BTL-1","name":"1 lb bottles","quantity":0,"unit":"bottles","reorderPoint":100,"leadDays":14,"preferredOrder":250},{"id":"INV-BTL-2","name":"2 lb bottles","quantity":0,"unit":"bottles","reorderPoint":40,"leadDays":14,"preferredOrder":120},{"id":"INV-SEAL","name":"Pressure seals","quantity":0,"unit":"seals","reorderPoint":150,"leadDays":10,"preferredOrder":500},{"id":"INV-LABEL","name":"Honey labels","quantity":0,"unit":"labels","reorderPoint":100,"leadDays":14,"preferredOrder":500},{"id":"INV-SUGAR","name":"Sugar","quantity":0,"unit":"lbs","reorderPoint":100,"leadDays":7,"preferredOrder":500}],"settings":{"routineInspectionDays":14,"swarmInspectionDays":8,"feederFollowupDays":5,"miteIntervalDays":60},"seasonalTemplates":[],"photos":{},"voiceNotes":{},"workSessions":[{"id":"WS-M38QDVO","yard":"Home Yard","mode":"routine","startedAt":"2026-08-06T00:28:44.500Z","queue":["H-001","H-002","H-003","H-004","H-005","H-006","H-007","H-008"],"completed":["H-002","H-001","H-003","H-004","H-005","H-006","H-007","H-008"],"interventions":{"Feed":5,"Queen work":2},"exceptions":3,"endedAt":"2026-08-06T00:32:44.796Z","minutes":4}],"activeSession":null,"harvests":[],"honeyBatches":[],"waxLots":[],"bottlingRuns":[],"productionView":"wax","migrations":{"homeYardRealityFix":true},"queenHistory":{"H-001":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-002":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-003":[{"queenId":"Q-2026-08","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-004":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-005":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-006":[{"queenId":"Q-2026-08","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-007":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}],"H-008":[{"queenId":"Q-2026-04","startDate":"2026-04-01","endDate":null,"status":"Current"}]},"colonySnapshots":{"H-001":[],"H-002":[],"H-003":[],"H-004":[],"H-005":[],"H-006":[],"H-007":[],"H-008":[]},"harvestParticipation":{"H-001":[],"H-002":[],"H-003":[],"H-004":[],"H-005":[],"H-006":[],"H-007":[],"H-008":[]},"feedings":[],"miteTests":[],"treatments":[],"operations":[]};
+const KEY='bhs-shared-063';
+let state=load();
+let view='home', session=null, selectedDay=new Date().toISOString().slice(0,10), weekStart=startWeek(new Date()), editingTaskId=null;
+
+
+function showLogin(message=''){
+ document.querySelector('nav').innerHTML='';document.querySelector('header').style.display='none';
+ app.innerHTML=`<div style="max-width:520px;margin:40px auto"><img class="loginlogo" src="buzzy-hive-logo-final-web.png" alt="Buzzy Hive Co. logo"><div class="hero"><div class="eyebrow">Buzzy Hive Operating System</div><h1>Shared Field Operations</h1><p>Sign in to use the same colony records on your phone and desktop.</p></div>${message?`<div class="card">${esc(message)}</div>`:''}<div class="card"><label>Email<input id="loginEmail" type="email" value="rcsisco86@gmail.com"></label><label>Password<input id="loginPassword" type="password"></label><button class="primary" style="width:100%;margin-top:12px" onclick="cloudLogin()">Sign in</button></div></div>`;
+}
+async function cloudLogin(){const email=document.querySelector('#loginEmail').value.trim(),password=document.querySelector('#loginPassword').value;const {error}=await sb.auth.signInWithPassword({email,password});if(error){showLogin(error.message);return}location.reload()}
+async function signOutCloud(){await sb.auth.signOut();location.reload()}
+function cloudDate(v){return v?String(v).slice(0,10):''}
+function localInspectionFromCloud(i,code){return {id:i.legacy_id||i.id,colony:code,date:cloudDate(i.inspected_at),type:i.inspection_type==='quick_check'?'Quick Hive Check':'Routine Inspection',mode:i.inspection_type==='quick_check'?'quick':'routine',queen:i.queen_signs||[],queenEvidence:i.queen_signs||[],population:i.population||'',overall:i.population||'',stores:i.food_stores||'',brood:i.brood_pattern||'',pests:i.pests||[],syrup:i.syrup_added||'None',pollen:i.pollen_added||'None',treatment:i.treatment||'None',treatmentNotes:i.treatment_notes||'',intervention:i.intervention||'None',notes:i.notes||'',statusChange:i.status_after||'No change',unusual:i.status_reason||'',needsFollowup:!!i.needs_followup,inspectedBy:i.profiles?.display_name||'BHS User',inspectedAt:i.inspected_at}}
+async function loadCloudState(){
+ const {data:{user}}=await sb.auth.getUser();if(!user)throw new Error('Not signed in');cloudUser=user;
+ const [pr,ar,cr,ir,or,tr,vr]=await Promise.all([
+  sb.from('profiles').select('*').eq('id',user.id).maybeSingle(),sb.from('apiaries').select('*').eq('name','Home Yard').maybeSingle(),
+  sb.from('colonies').select('*').eq('is_active',true).order('colony_code'),sb.from('inspections').select('*,profiles:inspected_by(display_name)').order('inspected_at',{ascending:true}),
+  sb.from('operations').select('*').order('performed_at',{ascending:true}),sb.from('tasks').select('*').order('due_date',{ascending:true}),sb.from('inventory_items').select('*').order('name')
+ ]);
+ const bad=[pr,ar,cr,ir,or,tr,vr].find(x=>x.error);if(bad)throw bad.error;cloudProfile=pr.data;cloudApiary=ar.data;cloudIds={};
+ state.colonies=(cr.data||[]).map(c=>{cloudIds[c.colony_code]=c.id;return {id:c.colony_code,apiary:'Home Yard',hiveNumber:c.hive_number||'',status:c.current_status||'Healthy',type:c.colony_type||'Production',queen:c.queen_id||'',feeder:'Internal',isDemo:false,population:c.population||'Unknown',brood:c.brood_pattern||'Not evaluated',stores:c.food_stores||'Unknown',temperament:'Not evaluated',shb:c.small_hive_beetle_status||'Unknown',mites:'Not tested',lastInspection:cloudDate(c.last_full_inspection_at),supers:0,queenEvidence:(c.queen_evidence||[]).join(', '),statusReason:c.status_reason||''}});
+ const codeByUuid=Object.fromEntries(Object.entries(cloudIds).map(([k,v])=>[v,k]));
+ state.inspections=(ir.data||[]).map(i=>localInspectionFromCloud(i,codeByUuid[i.colony_id]));
+ state.operations=(or.data||[]).map(o=>({id:o.legacy_id||o.id,type:o.operation_type,colony:codeByUuid[o.colony_id]||'',date:cloudDate(o.performed_at),detail:o.detail||''}));
+ state.tasks=(tr.data||[]).map(t=>({id:t.legacy_id||t.id,cloudId:t.id,title:t.title,colony:codeByUuid[t.colony_id]||'',apiary:'Home Yard',priority:t.priority||'normal',due:t.due_date||'',done:!!t.is_done,reason:t.reason||''}));
+ state.inventory=(vr.data||[]).map(v=>({id:v.item_code,cloudId:v.id,name:v.name,quantity:Number(v.quantity),unit:v.unit,reorderPoint:Number(v.reorder_point),leadDays:v.lead_days,preferredOrder:Number(v.preferred_order)}));
+ state.timeline=state.timeline||{};state.calendarEvents=state.calendarEvents||[];state.settings=state.settings||BASELINE.settings;save();const badge=document.querySelector('#cloudBadge');if(badge)badge.textContent='· cloud connected';
+}
+async function syncFromCloud(){try{await loadCloudState();render();alert('Cloud data synced.')}catch(e){alert('Sync failed: '+e.message)}}
+async function initCloud(){const {data:{session}}=await sb.auth.getSession();if(!session){showLogin();return}document.querySelector('header').style.display='flex';try{await loadCloudState();render()}catch(e){showLogin('Could not load cloud data: '+e.message)}}
+
+let saveInProgress=false;
+function lockSaveButton(){
+ if(saveInProgress)return false;
+ saveInProgress=true;
+ const btn=document.activeElement?.tagName==='BUTTON'?document.activeElement:null;
+ if(!btn)return null;
+ btn.disabled=true;
+ btn.dataset.originalText=btn.textContent;
+ btn.textContent='SAVING…';
+ return btn;
+}
+function unlockSaveButton(btn){
+ saveInProgress=false;
+ if(!btn)return;
+ btn.disabled=false;
+ btn.textContent=btn.dataset.originalText||'FINISH & SAVE';
+}
+
+async function cloudWriteWithRetry(label,fn,attempts=3){
+ let lastError=null;
+ for(let n=1;n<=attempts;n++){
+  try{const result=await fn();if(result?.error)throw result.error;return result}
+  catch(e){lastError=e;if(n<attempts)await new Promise(r=>setTimeout(r,700*n))}
+ }
+ throw new Error(`${label} failed after ${attempts} attempts: ${lastError?.message||lastError}`);
+}
+function uuidForColony(code){return cloudIds[code]}
+function statusFromRoutine(d){const red=d.stores==='Low'||['Poor','None'].includes(d.brood)||d.pests.includes('Varroa concern');const yellow=d.queen.includes('No queen evidence')||d.population==='Low'||d.pests.includes('Small hive beetles')||d.pests.includes('Wax moth');return red?'Needs Attention':yellow?'Monitor':'Healthy'}
+async function cloudInsertOperation(type,colony,date,detail,inspectionId=null){if(!detail||detail==='None')return;await cloudWriteWithRetry('Operation save',()=>sb.from('operations').insert({colony_id:uuidForColony(colony),operation_type:type,detail,performed_by:cloudUser.id,performed_at:date+'T12:00:00',inspection_id:inspectionId}))}
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||structuredClone(BASELINE)}catch(e){return structuredClone(BASELINE)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function uid(p){return p+'-'+Math.random().toString(36).slice(2,9).toUpperCase()}
+function today(){return new Date().toISOString().slice(0,10)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function startWeek(d){d=new Date(d);d.setHours(12,0,0,0);d.setDate(d.getDate()-d.getDay());return d}
+function iso(d){return d.toISOString().slice(0,10)}
+function setView(v){view=v;render()}
+function activeColonies(){return state.colonies.filter(c=>c.status!=='Archived')}
+
+function healthFromColony(c){
+ const last=(state.inspections||[]).filter(i=>i.colony===c.id).slice(-1)[0];
+ if(!last){
+  if(c.status==='Critical'||c.status==='Needs Attention')return {level:'red',label:'Needs Attention',reason:'current colony status requires attention'};
+  if(c.status==='Monitor')return {level:'yellow',label:'Monitor',reason:'colony is currently marked for monitoring'};
+  return {level:'green',label:'Healthy',reason:'no current warning flags'};
+ }
+ const q=Array.isArray(last.queen)?last.queen:(Array.isArray(last.queenSigns)?last.queenSigns:(Array.isArray(last.queenEvidence)?last.queenEvidence:[]));
+ const pop=last.population||last.overall||c.population||'', stores=last.stores||c.stores||'', brood=last.brood||c.brood||'';
+ const pests=Array.isArray(last.pests)?last.pests:[];
+ let red=false,yellow=false,reasons=[];
+ if(q.includes('No queen evidence')){yellow=true;reasons.push('no queen evidence')}
+ if(pop==='Low'||pop==='Weak'){yellow=true;reasons.push('low population')}
+ if(stores==='Low'){red=true;reasons.push('low food stores')}
+ if(brood==='Poor'||brood==='None'){red=true;reasons.push('poor or absent brood')}
+ if(pests.includes('Varroa concern')){red=true;reasons.push('varroa concern')}
+ if(pests.includes('Small hive beetles')){yellow=true;reasons.push('small hive beetles observed')}
+ if(pests.includes('Wax moth')){yellow=true;reasons.push('wax moth observed')}
+ if(c.status==='Critical'||c.status==='Needs Attention')red=true;
+ if(red)return {level:'red',label:'Needs Attention',reason:reasons.join(', ')||'last inspection requires action'};
+ if(yellow)return {level:'yellow',label:'Monitor',reason:reasons.join(', ')||'follow-up recommended'};
+ return {level:'green',label:'Healthy',reason:'last inspection did not trigger a warning'};
+}
+function healthClass(c){return 'health-'+healthFromColony(c).level}
+function healthDot(c){const l=healthFromColony(c).level;const color=l==='green'?'#4f915c':l==='yellow'?'#d09a16':'#c44438';return `<span class="health-dot" style="background:${color}"></span>`}
+
+function nav(){
+ const items=[['home','Command Center'],['colonies','Colonies'],['calendar','Calendar'],['operations','Feed / Treat'],['inventory','Inventory']];
+ document.querySelector('#nav').innerHTML=items.map(([id,label])=>`<button class="${view===id?'active':''}" onclick="setView('${id}')">${label}</button>`).join('');
+}
+function render(){nav(); if(view==='home')home(); else if(view==='inspection')inspection(); else if(view==='colonies')colonies(); else if(view==='calendar')calendar(); else if(view==='operations')operations(); else if(view==='quick')renderQuick(); else inventory()}
+function home(){
+ const cs=activeColonies(),healthy=cs.filter(c=>c.status==='Healthy').length,monitor=cs.filter(c=>c.status==='Monitor').length;
+ app.innerHTML=`<div class="hero"><div class="eyebrow">Field-first test build</div><h1>Home Yard Command Center</h1><p>Cloud-connected field operations. Work saved here is available on your phone and desktop.</p></div>
+ <button class="primary start" onclick="beginInspection()">START INSPECTION <span>Home Yard →</span></button>
+ <button class="secondary start" style="background:white;border:2px solid #d89a00" onclick="beginQuickCheck()">QUICK HIVE CHECK <span>Select hives →</span></button>
+ <div class="stats"><div class="stat"><strong>${cs.length}</strong><span>Active</span></div><div class="stat"><strong>${healthy}</strong><span>Healthy</span></div><div class="stat"><strong>${monitor}</strong><span>Monitor</span></div><div class="stat"><strong>${state.tasks.filter(t=>!t.done).length}</strong><span>Open tasks</span></div></div>
+ <div class="grid2"><div class="card"><h3>Home Yard</h3><div class="yard">${cs.map(c=>`<button class="hive ${healthClass(c)}" onclick="openColony('${c.id}')"><b>${healthDot(c)}${esc(c.id)}</b><small>${esc(healthFromColony(c).label)} · ${esc(c.population||'Unknown')}</small></button>`).join('')}</div></div>
+ <div class="card"><h3>Upcoming work</h3>${state.tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'').localeCompare(b.due||'')).slice(0,7).map(t=>`<div class="row"><div><b>${esc(t.title)}</b><small>${esc(t.colony||'Operations')} · ${esc(t.due||'No date')}</small></div></div>`).join('')||'<p class="muted">No open tasks.</p>'}</div></div>`;
+}
+
+let quickSelected=[];
+function beginQuickCheck(){
+ quickSelected=[];
+ view='quickselect'; nav();
+ app.innerHTML=`<div class="hero"><div class="eyebrow">Targeted work</div><h1>Quick Hive Check</h1><p>Select one or more colonies. Quick checks add to colony history without replacing the last full inspection health status unless you choose a status change.</p></div>
+ <div class="card"><h3>Select hives</h3><div class="yard">${activeColonies().map(c=>`<button id="qs-${c.id}" class="hive ${healthClass(c)}" onclick="toggleQuickHive('${c.id}')"><b>${healthDot(c)}${esc(c.id)}</b><small>${esc(healthFromColony(c).label)}</small></button>`).join('')}</div></div>
+ <div class="savebar"><button class="secondary" onclick="setView('home')">Cancel</button><button class="primary" onclick="startSelectedQuick()">Start Selected Hives →</button></div>`;
+}
+function toggleQuickHive(id){
+ const i=quickSelected.indexOf(id);
+ if(i>=0) quickSelected.splice(i,1); else quickSelected.push(id);
+ const el=document.getElementById('qs-'+id);
+ if(el) el.style.boxShadow=quickSelected.includes(id)?'0 0 0 4px #d89a00':'';
+}
+function startSelectedQuick(){
+ if(!quickSelected.length){alert('Select at least one hive.');return}
+ session={mode:'quick',ids:[...quickSelected],index:0,draft:blankQuick(quickSelected[0]),results:[]};
+ view='quick'; renderQuick();
+}
+function blankQuick(id){
+ return {colony:id,date:today(),notes:'',syrup:'None',pollen:'None',treatment:'None',treatmentNotes:'',intervention:'None',statusChange:'No change'};
+}
+function renderQuick(){
+ nav();
+ const d=session.draft,id=session.ids[session.index],c=state.colonies.find(x=>x.id===id);
+ app.innerHTML=`<div class="progress"><b>${id} · Quick Check</b><span>Hive ${session.index+1} of ${session.ids.length}</span><progress value="${session.index+1}" max="${session.ids.length}"></progress></div>
+ <div class="health-banner ${healthClass(c)}">${healthDot(c)}Current full-inspection status: ${esc(healthFromColony(c).label)}<div class="health-reason">${esc(healthFromColony(c).reason)}</div></div>
+ <div class="card"><h3>Work performed</h3><div class="field2">
+ <label>Syrup added<select onchange="session.draft.syrup=this.value">${['None','1/4 gal','1/2 gal','3/4 gal','1 gal','Other'].map(x=>`<option ${d.syrup===x?'selected':''}>${x}</option>`).join('')}</select></label>
+ <label>Pollen added<select onchange="session.draft.pollen=this.value">${['None','1/4 patty','1/2 patty','1 patty','Other'].map(x=>`<option ${d.pollen===x?'selected':''}>${x}</option>`).join('')}</select></label>
+ <label>Treatment<select onchange="session.draft.treatment=this.value">${['None','Apivar','Formic Pro','Oxalic acid','Other'].map(x=>`<option ${d.treatment===x?'selected':''}>${x}</option>`).join('')}</select></label>
+ <label>Treatment notes<input value="${esc(d.treatmentNotes)}" onchange="session.draft.treatmentNotes=this.value" placeholder="Dose, strips, removal date..."></label>
+ <label>Intervention<select onchange="session.draft.intervention=this.value">${['None','Added super','Removed super','Queen work','Equalized colony','Equipment change','Other'].map(x=>`<option ${d.intervention===x?'selected':''}>${x}</option>`).join('')}</select></label>
+ <label>Change colony status?<select onchange="session.draft.statusChange=this.value"><option>No change</option><option>Healthy</option><option>Monitor</option><option>Needs Attention</option></select></label>
+ </div></div>
+ <div class="card"><div class="noteshead"><h3>Quick check notes</h3><button id="talk" class="talk" onclick="this.classList.contains('live')?stopTalk():startTalk()">🎤 TALK</button></div>
+ <textarea id="notes" placeholder="What did you check or do?">${esc(d.notes)}</textarea>
+ <div id="voiceState" class="voice-state">Tap START TALKING and describe the hive naturally. Tap STOP TALKING when finished.</div>
+ <textarea id="liveTranscript" class="hidden" readonly placeholder="Live transcription appears here while you speak..."></textarea><div id="voiceReview" class="voice-review hidden"><span class="voice-badge">Transcript Preview</span><h4>Review before adding</h4><textarea id="voicePreview" placeholder="Transcript appears here..."></textarea><div class="voice-actions"><button class="primary" onclick="useVoiceNote()">USE NOTE</button><button class="secondary" onclick="retryVoiceNote()">RETRY</button><button class="secondary" onclick="clearVoicePreview()">CLEAR</button></div></div>
+ <small>Speak as long as needed. Quick-check voice text is only saved after you review and approve it.</small></div>
+ <div class="savebar"><button class="secondary" onclick="session=null;setView('home')">Exit</button><button class="primary" onclick="saveQuickNext()">${session.index===session.ids.length-1?'Finish Quick Check':'Save & Next Selected Hive →'}</button></div>`;
+}
+async function saveQuickNext(){
+ if(!document.querySelector('#voiceReview')?.classList.contains('hidden')){alert('Review the voice transcript first: Use Note, Retry, or Clear.');return}
+ const d=session.draft;d.notes=document.querySelector('#notes')?.value||'';if(!d.notes.trim()&&d.syrup==='None'&&d.pollen==='None'&&d.treatment==='None'&&d.intervention==='None'){alert('Add a note or record the work performed before saving.');return}
+ const saveBtn=lockSaveButton();if(saveBtn===false)return;const status=d.statusChange==='No change'?null:d.statusChange,legacy=uid('QCHK');const payload={legacy_id:legacy,colony_id:uuidForColony(d.colony),inspection_type:'quick_check',inspected_by:cloudUser.id,inspected_at:d.date+'T12:00:00',queen_signs:[],pests:[],syrup_added:d.syrup==='None'?null:d.syrup,pollen_added:d.pollen==='None'?null:d.pollen,treatment:d.treatment==='None'?null:d.treatment,treatment_notes:d.treatmentNotes||null,intervention:d.intervention==='None'?null:d.intervention,notes:d.notes||null,status_after:status,status_reason:null,needs_followup:status==='Monitor'||status==='Needs Attention'};
+ let data;try{const r=await cloudWriteWithRetry('Quick check save',()=>sb.from('inspections').upsert(payload,{onConflict:'legacy_id'}).select('id').single());data=r.data}catch(e){unlockSaveButton(saveBtn);alert(e.message+'\nYour entries are still on screen. Check your connection and tap Save again.');return}
+ try{if(d.syrup!=='None')await cloudInsertOperation('Feeding',d.colony,d.date,d.syrup+' syrup',data.id);if(d.pollen!=='None')await cloudInsertOperation('Pollen',d.colony,d.date,d.pollen+' pollen patty',data.id);if(d.treatment!=='None')await cloudInsertOperation('Treatment',d.colony,d.date,d.treatment+(d.treatmentNotes?' — '+d.treatmentNotes:''),data.id);if(d.intervention!=='None')await cloudInsertOperation('Intervention',d.colony,d.date,d.intervention,data.id);if(status){await cloudWriteWithRetry('Colony status update',()=>sb.from('colonies').update({current_status:status,status_reason:d.notes||'Quick check status change'}).eq('id',uuidForColony(d.colony)))}}catch(err){alert('Inspection saved, but a related cloud update failed: '+err.message)}
+ // Update the phone's in-memory copy immediately after the cloud confirms the write.
+ // This keeps the hive color/status current without waiting for a full cloud reload.
+ const localColony=state.colonies.find(c=>c.id===d.colony);
+ if(localColony&&status){localColony.status=status;localColony.statusReason=d.notes||'Quick check status change'}
+ state.inspections.push({...d,id:legacy,type:'Quick Hive Check',mode:'quick',date:d.date,statusChange:status||'No change',needsFollowup:status==='Monitor'||status==='Needs Attention',inspectedBy:cloudProfile?.display_name||'BHS User'});
+ save();
+ session.results.push({...d,id:legacy,type:'Quick Hive Check'});
+ // The inspection and related writes are already confirmed above. Do not block field work
+ // on a full re-download of every cloud table after each hive.
+ if(session.index>=session.ids.length-1){
+  unlockSaveButton(saveBtn);alert(`${session.results.length} quick hive check${session.results.length===1?'':'s'} saved to cloud.`);session=null;setView('home');
+  loadCloudState().then(()=>render()).catch(()=>{});return
+ }
+ session.index++;session.draft=blankQuick(session.ids[session.index]);unlockSaveButton(saveBtn);scrollTo(0,0);renderQuick();
+}
+
+function beginInspection(){
+ const cs=activeColonies();session={index:0,results:[],draft:blank(cs[0]?.id)};view='inspection';render()
+}
+function blank(id){return {colony:id,date:today(),queen:[],population:'',stores:'',brood:'',pests:[],syrup:'None',pollen:'None',treatment:'None',treatmentNotes:'',intervention:'None',notes:''}}
+function toggle(field,val){const a=session.draft[field];session.draft[field]=a.includes(val)?a.filter(x=>x!==val):[...a,val];render()}
+function choose(field,val){session.draft[field]=val;render()}
+let voiceDraft='',voiceRecognition=null,voiceFinal='',voiceInterim='',voiceStopping=false,voiceWanted=false,voiceRestartCount=0;
+function buildVoiceRecognition(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR)return null;
+ const r=new SR();voiceRecognition=r;r.lang='en-US';r.continuous=true;r.interimResults=true;
+ r.onresult=e=>{
+   voiceInterim='';
+   for(let i=e.resultIndex;i<e.results.length;i++){
+     const t=e.results[i][0].transcript.trim();
+     if(e.results[i].isFinal){if(t)voiceFinal+=(voiceFinal?' ':'')+t}
+     else voiceInterim+=(voiceInterim?' ':'')+t;
+   }
+   voiceDraft=(voiceFinal+(voiceInterim?' '+voiceInterim:'')).trim();
+   updateLiveTranscript();
+ };
+ r.onerror=e=>{
+   if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+     voiceWanted=false;voiceStopping=true;setTalkIdle();
+     alert('Microphone access is blocked. Allow microphone access for this site in Safari, then try again.');
+     if(voiceDraft)showVoiceReview();
+     return;
+   }
+   if(e.error==='audio-capture'){
+     voiceWanted=false;voiceStopping=true;setTalkIdle();
+     alert('The microphone could not be accessed. Close any other app using the mic and try again.');
+     if(voiceDraft)showVoiceReview();
+     return;
+   }
+   // iPhone Safari commonly ends a recognition session after a pause. onend handles a quiet restart.
+ };
+ r.onend=()=>{
+   if(voiceWanted&&!voiceStopping){
+     voiceRestartCount++;
+     const s=document.querySelector('#voiceState');if(s)s.textContent='Still listening… microphone session refreshed automatically.';
+     setTimeout(()=>{
+       if(!voiceWanted||voiceStopping)return;
+       try{const next=buildVoiceRecognition();next?.start()}catch(e){voiceWanted=false;setTalkIdle();if(voiceDraft)showVoiceReview()}
+     },250);
+     return;
+   }
+   setTalkIdle();
+   if(voiceDraft)showVoiceReview();
+ };
+ return r;
+}
+function startTalk(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SR){alert('Voice-to-text is not supported in this browser. Try Safari or Chrome and allow microphone access.');return}
+ voiceDraft='';voiceFinal='';voiceInterim='';voiceStopping=false;voiceWanted=true;voiceRestartCount=0;
+ const r=buildVoiceRecognition();
+ try{r.start()}catch(e){voiceWanted=false;setTalkIdle();alert('The microphone could not start. Check microphone permission and try again.');return}
+ const b=document.querySelector('#talk');if(b){b.classList.add('live');b.textContent='■ STOP TALKING'}
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Listening continuously… pauses are okay. Tap STOP TALKING when finished.';
+ const live=document.querySelector('#liveTranscript');if(live){live.classList.remove('hidden');live.value=''}
+}
+function stopTalk(){
+ voiceWanted=false;voiceStopping=true;
+ try{voiceRecognition?.stop()}catch(e){}
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Stopping… preparing your full transcript.';
+}
+function updateLiveTranscript(){
+ const live=document.querySelector('#liveTranscript');
+ if(live)live.value=voiceDraft;
+}
+function setTalkIdle(){
+ const b=document.querySelector('#talk');if(b){b.classList.remove('live');b.textContent='🎤 START TALKING'}
+}
+function showVoiceReview(){
+ const box=document.querySelector('#voiceReview'),ta=document.querySelector('#voicePreview'),live=document.querySelector('#liveTranscript');
+ if(!box||!ta)return;
+ ta.value=voiceDraft||'';box.classList.remove('hidden');if(live)live.classList.add('hidden');
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Review the full transcript. Nothing has been added to the hive record yet.';
+}
+function useVoiceNote(){
+ const preview=document.querySelector('#voicePreview'),notes=document.querySelector('#notes');if(!preview||!notes)return;
+ const text=preview.value.trim();if(!text)return;
+ notes.value=notes.value.trim()?notes.value.trim()+'\n'+text:text;
+ if(session?.draft)session.draft.notes=notes.value;
+ voiceDraft='';voiceFinal='';voiceInterim='';
+ document.querySelector('#voiceReview')?.classList.add('hidden');
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Full transcript added to notes. You can still edit it before saving.';
+}
+function retryVoiceNote(){
+ voiceDraft='';voiceFinal='';voiceInterim='';
+ document.querySelector('#voiceReview')?.classList.add('hidden');
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Transcript discarded. Tap START TALKING to record the inspection note again.';
+}
+function clearVoicePreview(){
+ retryVoiceNote();
+ const s=document.querySelector('#voiceState');if(s)s.textContent='Transcript cleared.';
+}
+async function saveNext(){
+ if(!document.querySelector('#voiceReview')?.classList.contains('hidden')){alert('Review the voice transcript first: Use Note, Retry, or Clear.');return}
+ const d=session.draft;if(!d.queen.length||!d.population||!d.stores||!d.brood){alert('Select queen signs, population, food stores, and brood before saving.');return}d.notes=document.querySelector('#notes')?.value||d.notes;
+ const saveBtn=lockSaveButton();if(saveBtn===false)return;const status=statusFromRoutine(d),follow=status!=='Healthy',legacy=uid('INSP');const payload={legacy_id:legacy,colony_id:uuidForColony(d.colony),inspection_type:'routine',inspected_by:cloudUser.id,inspected_at:d.date+'T12:00:00',queen_signs:d.queen,population:d.population,food_stores:d.stores,brood_pattern:d.brood,pests:d.pests,syrup_added:d.syrup==='None'?null:d.syrup,pollen_added:d.pollen==='None'?null:d.pollen,treatment:d.treatment==='None'?null:d.treatment,treatment_notes:d.treatmentNotes||null,intervention:d.intervention==='None'?null:d.intervention,notes:d.notes||null,status_after:status,status_reason:follow?(d.notes||'Inspection follow-up recommended'):'Routine inspection healthy',needs_followup:follow};
+ let data;try{const r=await cloudWriteWithRetry('Inspection save',()=>sb.from('inspections').upsert(payload,{onConflict:'legacy_id'}).select('id').single());data=r.data}catch(e){unlockSaveButton(saveBtn);alert(e.message+'\nYour inspection is still on screen. Check your connection and tap Save again.');return}
+ const update={current_status:status,status_reason:payload.status_reason,population:d.population,food_stores:d.stores,brood_pattern:d.brood,queen_evidence:d.queen,small_hive_beetle_status:d.pests.includes('Small hive beetles')?'Observed':'None seen',last_full_inspection_at:d.date+'T12:00:00'};try{await cloudWriteWithRetry('Colony update',()=>sb.from('colonies').update(update).eq('id',uuidForColony(d.colony)))}catch(e){alert('Inspection saved, but '+e.message)};
+ try{if(d.syrup!=='None')await cloudInsertOperation('Feeding',d.colony,d.date,d.syrup+' syrup',data.id);if(d.pollen!=='None')await cloudInsertOperation('Pollen',d.colony,d.date,d.pollen+' pollen patty',data.id);if(d.treatment!=='None')await cloudInsertOperation('Treatment',d.colony,d.date,d.treatment+(d.treatmentNotes?' — '+d.treatmentNotes:''),data.id);if(d.intervention!=='None')await cloudInsertOperation('Intervention',d.colony,d.date,d.intervention,data.id)}catch(err){alert('Inspection saved, but a related operation failed: '+err.message)}
+ // Mirror the confirmed colony/inspection changes locally so dashboard colors update instantly.
+ const localColony=state.colonies.find(c=>c.id===d.colony);
+ if(localColony){localColony.status=status;localColony.statusReason=payload.status_reason;localColony.population=d.population;localColony.stores=d.stores;localColony.brood=d.brood;localColony.queenEvidence=d.queen.join(', ');localColony.lastInspection=d.date}
+ state.inspections.push({...d,id:legacy,type:'Routine Inspection',mode:'routine',date:d.date,statusChange:status,needsFollowup:follow,inspectedBy:cloudProfile?.display_name||'BHS User'});
+ save();
+ session.results.push({...d,id:legacy,type:'Routine Inspection',needsFollowup:follow});
+ // Avoid a full cloud reload between hives. The primary inspection save, colony update,
+ // and selected operations have already completed successfully at this point.
+ const cs=activeColonies();
+ if(session.index>=cs.length-1){unlockSaveButton(saveBtn);session.finished=true;render();loadCloudState().catch(()=>{});return}
+ session.index++;session.draft=blank(cs[session.index].id);unlockSaveButton(saveBtn);scrollTo(0,0);render();
+}
+function inspection(){
+ if(session.finished){const rs=session.results;app.innerHTML=`<div class="card"><div class="eyebrow">Inspection complete</div><h2>${rs.length} colonies inspected</h2><div class="summary"><div><b>${rs.filter(r=>r.syrup!=='None').length}</b><span>Fed</span></div><div><b>${rs.filter(r=>r.pollen!=='None').length}</b><span>Pollen added</span></div><div><b>${rs.filter(r=>r.treatment!=='None').length}</b><span>Treated</span></div><div><b>${rs.filter(r=>r.needsFollowup).length}</b><span>Follow-up</span></div></div><button class="primary start" onclick="session=null;setView('home')">Return to Command Center</button></div>`;return}
+ const cs=activeColonies(),c=cs[session.index],d=session.draft;
+ const q=['Eggs','Young larvae','Capped brood','Queen seen','Queen cells','No queen evidence'],pop=['Low','Average','Strong','Crowded'],stores=['Low','Adequate','Heavy'],brood=['Full / clean','Acceptable','Spotty','Poor','None'],pests=['Small hive beetles','Varroa concern','Wax moth','Other pest'];
+ const taps=(arr,field,multi=false)=>`<div class="tapgrid">${arr.map(v=>`<button class="tap ${multi?d[field].includes(v):d[field]===v?'selected':''} ${multi&&d[field].includes(v)?'selected':''}" onclick="${multi?`toggle('${field}','${v}')`:`choose('${field}','${v}')`}">${v}</button>`).join('')}</div>`;
+ app.innerHTML=`<div class="progress"><b>${c.id}</b><span>Hive ${session.index+1} of ${cs.length}</span><progress value="${session.index+1}" max="${cs.length}"></progress></div>
+ <div class="card"><h3>Queen signs <small>Select all that apply</small></h3>${taps(q,'queen',true)}</div>
+ <div class="card"><h3>Population</h3>${taps(pop,'population')}</div>
+ <div class="card"><h3>Food stores</h3>${taps(stores,'stores')}</div>
+ <div class="card"><h3>Brood pattern</h3>${taps(brood,'brood')}</div>
+ <div class="card"><h3>Pests</h3>${taps(pests,'pests',true)}<button class="secondary" style="margin-top:8px" onclick="session.draft.pests=[];render()">None seen</button></div>
+ <div class="card"><h3>Feeding & pollen</h3><div class="field2"><label>Syrup added<select onchange="choose('syrup',this.value)">${['None','1/4 gal','1/2 gal','3/4 gal','1 gal','Other'].map(x=>`<option ${d.syrup===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Pollen patty added<select onchange="choose('pollen',this.value)">${['None','1/4 patty','1/2 patty','1 patty','Other'].map(x=>`<option ${d.pollen===x?'selected':''}>${x}</option>`).join('')}</select></label></div></div>
+ <div class="card"><h3>Treatment</h3><div class="field2"><label>Treatment<select onchange="choose('treatment',this.value)">${['None','Apivar','Formic Pro','Oxalic acid','Other'].map(x=>`<option ${d.treatment===x?'selected':''}>${x}</option>`).join('')}</select></label><label>Notes<input value="${esc(d.treatmentNotes)}" onchange="session.draft.treatmentNotes=this.value" placeholder="Dose / strips / removal date"></label></div></div>
+ <div class="card"><h3>Intervention</h3><select onchange="choose('intervention',this.value)">${['None','Added super','Removed super','Queen work','Equalized colony','Equipment change','Other'].map(x=>`<option ${d.intervention===x?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div class="card"><div class="noteshead"><h3>Notes</h3><button id="talk" class="talk" onclick="this.classList.contains('live')?stopTalk():startTalk()">🎤 START TALKING</button></div><textarea id="notes" placeholder="Talk or type only what matters...">${esc(d.notes)}</textarea><div id="voiceState" class="voice-state">Tap START TALKING and describe the hive naturally. Tap STOP TALKING when finished.</div><textarea id="liveTranscript" class="hidden" readonly placeholder="Live transcription appears here while you speak..."></textarea><div id="voiceReview" class="voice-review hidden"><span class="voice-badge">Transcript Preview</span><h4>Review before adding</h4><textarea id="voicePreview" placeholder="Transcript appears here..."></textarea><div class="voice-actions"><button class="primary" onclick="useVoiceNote()">USE NOTE</button><button class="secondary" onclick="retryVoiceNote()">RETRY</button><button class="secondary" onclick="clearVoicePreview()">CLEAR</button></div></div><small>Speak as long as needed. The full transcript is only added after you review and approve it.</small></div>
+ <div class="savebar"><button class="secondary" onclick="session=null;setView('home')">Exit</button><button class="primary" onclick="saveNext()">${session.index===cs.length-1?'Finish Inspection':'Save & Next Hive →'}</button></div>`;
+}
+function colonies(){app.innerHTML=`<div class="hero"><div class="eyebrow">Living colonies</div><h1>Home Yard</h1></div>${activeColonies().map(c=>`<button class="card ${healthClass(c)}" style="width:100%;text-align:left" onclick="openColony('${c.id}')"><div class="row"><div><b>${healthDot(c)}${c.id}</b><small>Queen ${esc(c.queen)} · Last inspection ${esc(c.lastInspection||'None')}</small></div><b>${esc(healthFromColony(c).label)}</b></div></button>`).join('')}`}
+function openColony(id){
+ const c=state.colonies.find(x=>x.id===id),ins=state.inspections.filter(i=>i.colony===id).slice().reverse();
+ app.innerHTML=`<button class="secondary" onclick="colonies()">← Back</button><div class="hero"><div class="eyebrow">Living Colony · Cloud Record</div><h1>${c.id}</h1><p>Population ${esc(c.population)} · Queen ${esc(c.queen)}</p></div><div class="health-banner ${healthClass(c)}">${healthDot(c)}${esc(healthFromColony(c).label)}<div class="health-reason">Why: ${esc(healthFromColony(c).reason)}</div></div><button class="primary" style="width:100%;margin-bottom:12px" onclick="quickSelected=['${c.id}'];startSelectedQuick()">QUICK CHECK ${c.id}</button><div class="card"><h3>Queen evidence</h3><p>${esc(c.queenEvidence||'Not recorded')}</p></div><div class="card"><h3>Inspection history</h3>${ins.map(i=>`<details class="voice-review" style="background:#fffaf0"><summary style="font-weight:900;cursor:pointer">${esc(i.date)} · ${esc(i.type)} · ${esc(i.inspectedBy||'BHS User')}</summary><p><b>Queen:</b> ${esc(Array.isArray(i.queen)?i.queen.join(', '):(Array.isArray(i.queenEvidence)?i.queenEvidence.join(', '):(i.queenEvidence||'—')))}</p><p><b>Population:</b> ${esc(i.population||i.overall||'—')} · <b>Stores:</b> ${esc(i.stores||'—')} · <b>Brood:</b> ${esc(i.brood||'—')}</p><p><b>Pests:</b> ${esc((i.pests||[]).join(', ')||'None recorded')}</p><p><b>Feeding:</b> ${esc(i.syrup||'None')} · <b>Pollen:</b> ${esc(i.pollen||'None')}</p><p><b>Treatment:</b> ${esc(i.treatment||'None')} ${i.treatmentNotes?'— '+esc(i.treatmentNotes):''}</p><p><b>Intervention:</b> ${esc(i.intervention||'None')}</p><p><b>Notes:</b><br>${esc(i.notes||'No notes recorded.').replaceAll('\n','<br>')}</p></details>`).join('')||'<p class="muted">No inspections.</p>'}</div>`;
+}
+function calendar(){
+ const days=Array.from({length:7},(_,i)=>{const d=new Date(weekStart);d.setDate(d.getDate()+i);return d});
+ const editTask=editingTaskId?state.tasks.find(t=>t.id===editingTaskId):null;
+ app.innerHTML=`<div class="hero"><div class="eyebrow">Weekly planning</div><h1>Calendar</h1><p>Scheduled work can be rescheduled, edited, completed, reopened, or deleted.</p><div class="field2"><button class="secondary" onclick="weekStart=new Date(weekStart);weekStart.setDate(weekStart.getDate()-7);render()">← Previous</button><button class="secondary" onclick="weekStart=new Date(weekStart);weekStart.setDate(weekStart.getDate()+7);render()">Next →</button></div></div>
+ <div class="week">${days.map(d=>{const date=iso(d),ts=state.tasks.filter(t=>t.due===date);return `<button class="day ${selectedDay===date?'selected':''}" onclick="selectedDay='${date}';editingTaskId=null;render()"><strong>${d.toLocaleDateString('en-US',{weekday:'short'})}</strong><span>${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>${ts.slice(0,4).map(t=>`<small>${esc(t.title)}${t.colony?' · '+t.colony:''}</small>`).join('')}</button>`}).join('')}</div>
+ <div class="card"><h3>Add task to ${selectedDay}</h3><div class="field2"><label>Task<input id="taskTitle" placeholder="Inspect feeder, remove treatment..."></label><label>Colony<select id="taskColony"><option value="">Whole yard / operations</option>${activeColonies().map(c=>`<option>${c.id}</option>`).join('')}</select></label></div><button class="primary" style="margin-top:10px" onclick="addTask()">Add to calendar</button></div>
+ ${editTask?`<div class="card" style="border:2px solid #d89a00"><div class="eyebrow">Edit scheduled work</div><h3>${esc(editTask.title)}</h3><div class="field2"><label>Task<input id="editTaskTitle" value="${esc(editTask.title)}"></label><label>Colony<select id="editTaskColony"><option value="">Whole yard / operations</option>${activeColonies().map(c=>`<option ${editTask.colony===c.id?'selected':''}>${c.id}</option>`).join('')}</select></label><label>Scheduled date<input id="editTaskDate" type="date" value="${esc(editTask.due||selectedDay)}"></label><label>Priority<select id="editTaskPriority">${['low','normal','high','critical'].map(p=>`<option value="${p}" ${editTask.priority===p?'selected':''}>${p[0].toUpperCase()+p.slice(1)}</option>`).join('')}</select></label></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="primary" onclick="saveTaskEdit('${editTask.id}')">Save changes</button><button class="secondary" onclick="editingTaskId=null;render()">Cancel</button><button class="danger" onclick="deleteTask('${editTask.id}')">Delete task</button></div></div>`:''}
+ <div class="card"><h3>Tasks for ${selectedDay}</h3>${state.tasks.filter(t=>t.due===selectedDay).map(t=>`<div class="row"><div><b>${esc(t.title)}</b><small>${esc(t.colony||'Operations')} · ${esc(t.priority||'normal')}${t.done?' · Completed':''}</small></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="secondary" onclick="editTask('${t.id}')">Edit</button><button class="secondary" onclick="toggleTask('${t.id}')">${t.done?'Reopen':'Complete'}</button><button class="danger" onclick="deleteTask('${t.id}')">Delete</button></div></div>`).join('')||'<p class="muted">No tasks.</p>'}</div>`;
+}
+async function addTask(){
+ const title=document.querySelector('#taskTitle').value.trim();if(!title)return;const code=document.querySelector('#taskColony').value,legacy=uid('T');
+ try{await cloudWriteWithRetry('Task save',()=>sb.from('tasks').insert({legacy_id:legacy,title,colony_id:code?uuidForColony(code):null,apiary_id:cloudApiary.id,priority:'normal',due_date:selectedDay,is_done:false,reason:'',created_by:cloudUser.id}));await loadCloudState();render()}catch(e){alert(e.message)}
+}
+function editTask(id){editingTaskId=id;render();setTimeout(()=>document.querySelector('#editTaskTitle')?.scrollIntoView({behavior:'smooth',block:'center'}),50)}
+async function saveTaskEdit(id){
+ const t=state.tasks.find(x=>x.id===id);if(!t)return;
+ const title=document.querySelector('#editTaskTitle').value.trim(),code=document.querySelector('#editTaskColony').value,due=document.querySelector('#editTaskDate').value,priority=document.querySelector('#editTaskPriority').value;
+ if(!title||!due){alert('Task name and scheduled date are required.');return}
+ try{await cloudWriteWithRetry('Task update',()=>sb.from('tasks').update({title,colony_id:code?uuidForColony(code):null,due_date:due,priority}).eq('id',t.cloudId));editingTaskId=null;selectedDay=due;await loadCloudState();render()}catch(e){alert(e.message)}
+}
+async function toggleTask(id){
+ const t=state.tasks.find(x=>x.id===id);if(!t)return;const val=!t.done;
+ try{await cloudWriteWithRetry('Task status update',()=>sb.from('tasks').update({is_done:val,completed_by:val?cloudUser.id:null,completed_at:val?new Date().toISOString():null}).eq('id',t.cloudId));await loadCloudState();render()}catch(e){alert(e.message)}
+}
+async function deleteTask(id){
+ const t=state.tasks.find(x=>x.id===id);if(!t)return;if(!confirm(`Delete scheduled work "${t.title}"? This cannot be undone.`))return;
+ try{await cloudWriteWithRetry('Task delete',()=>sb.from('tasks').delete().eq('id',t.cloudId));if(editingTaskId===id)editingTaskId=null;await loadCloudState();render()}catch(e){alert(e.message)}
+}
+function operations(){
+ app.innerHTML=`<div class="hero"><div class="eyebrow">Inputs & treatments</div><h1>Feeding, Pollen & Treatments</h1></div>
+ <div class="card"><div class="field2"><label>Type<select id="opType"><option>Feeding</option><option>Pollen</option><option>Treatment</option></select></label><label>Colony<select id="opColony">${activeColonies().map(c=>`<option>${c.id}</option>`).join('')}</select></label><label>Date<input id="opDate" type="date" value="${today()}"></label><label>Amount / treatment / notes<input id="opDetail" placeholder="3/4 gal 1:1 syrup, 1/4 patty, Apivar..."></label></div><button class="primary" style="margin-top:10px" onclick="addOp()">Add record</button></div>
+ <div class="card"><h3>Recent records</h3>${state.operations.slice().reverse().map(r=>`<div class="row"><div><b>${esc(r.date)} · ${esc(r.colony)} · ${esc(r.type)}</b><small>${esc(r.detail)}</small></div></div>`).join('')||'<p class="muted">No records yet.</p>'}</div>`;
+}
+async function addOp(){const detail=document.querySelector('#opDetail').value.trim();if(!detail)return;try{await cloudInsertOperation(opType.value,opColony.value,opDate.value,detail);await loadCloudState();render()}catch(e){alert('Cloud save failed: '+e.message)}}
+function inventory(){app.innerHTML=`<div class="hero"><div class="eyebrow">Operations</div><h1>Inventory</h1><p>Quantities remain at zero until supplies are ordered.</p></div>${state.inventory.map(i=>`<div class="card"><div class="row"><div><b>${esc(i.name)}</b><small>Reorder at ${i.reorderPoint} ${esc(i.unit)} · Lead time ${i.leadDays} days</small></div><input style="width:100px" type="number" min="0" value="${i.quantity}" onchange="setInv('${i.id}',this.value)"></div></div>`).join('')}`}
+async function setInv(id,v){const i=state.inventory.find(x=>x.id===id);if(!i)return;const {error}=await sb.from('inventory_items').update({quantity:Number(v),updated_by:cloudUser.id,updated_at:new Date().toISOString()}).eq('id',i.cloudId);if(error){alert('Inventory cloud update failed: '+error.message);return}i.quantity=Number(v);save()}
+
+function importBackup(file){
+ if(!file)return;
+ const r=new FileReader();
+ r.onload=()=>{try{const p=JSON.parse(r.result),incoming=p.state||p.data||p;if(!incoming||!Array.isArray(incoming.colonies))throw new Error('No colony data found');if(!confirm(`Import ${incoming.colonies.length} colony records?`))return;state=incoming;state.operations=state.operations||[];save();render();alert('Backup imported successfully.')}catch(e){alert('Could not import backup: '+e.message)}};
+ r.readAsText(file);
+}
+function exportBackup(){const blob=new Blob([JSON.stringify({app:'BHS Field Test',version:'0.5.1',exportedAt:new Date().toISOString(),state},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='bhs-field-test-backup-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+initCloud();
+</script>
+</body>
+</html>
